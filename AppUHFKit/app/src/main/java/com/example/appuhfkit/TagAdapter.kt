@@ -39,6 +39,15 @@ class TagAdapter(private val items: List<TagItem>) : RecyclerView.Adapter<TagAda
         holder.tvNo.text = (position + 1).toString()
         holder.tvEpc.text = item.epc
         holder.tvTime.text = item.time
+        
+        // ใช้ฟอนต์ SukhumvitSet-Medium สำหรับข้อความใน item
+        try {
+            FontHelper.applySukhumvitMedium(holder.tvNo)
+            FontHelper.applySukhumvitMedium(holder.tvEpc)
+            FontHelper.applySukhumvitMedium(holder.tvTime)
+        } catch (e: Exception) {
+            // Ignore font errors
+        }
     }
 
     override fun getItemCount(): Int {

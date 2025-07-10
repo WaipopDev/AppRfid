@@ -69,6 +69,9 @@ class ScanOutActivity : AppCompatActivity() {
         }
 
         updateFooter()
+        
+        // ใช้ฟอนต์ SukhumvitSet
+        applyFonts()
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -214,6 +217,23 @@ class ScanOutActivity : AppCompatActivity() {
                 onDismiss?.invoke()
             }
             .show()
+    }
+
+    private fun applyFonts() {
+        try {
+            // ใช้ฟอนต์ SukhumvitSet-Bold สำหรับ header
+            val headerText = findViewById<TextView>(R.id.headerText)
+            FontHelper.applySukhumvitBold(headerText)
+            
+            // ใช้ฟอนต์ SukhumvitSet-Medium สำหรับ footer
+            FontHelper.applySukhumvitMedium(footerText)
+            
+            // ใช้ฟอนต์ SukhumvitSet-Bold สำหรับปุ่ม
+            FontHelper.applySukhumvitBold(btnScan)
+            FontHelper.applySukhumvitBold(btnSave)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error applying fonts", e)
+        }
     }
 
     override fun onDestroy() {
