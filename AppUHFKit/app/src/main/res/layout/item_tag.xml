@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp"
+    android:paddingLeft="8dp"
+    android:paddingRight="8dp"
+    android:background="@android:color/white"
+    android:divider="@android:color/darker_gray"
+    android:showDividers="middle">
+
+    <TextView
+        android:id="@+id/tvNo"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="1"
+        android:textColor="#333"
+        android:textSize="12sp"
+        android:gravity="center" />
+
+    <TextView
+        android:id="@+id/tvEpc"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="3"
+        android:text="E2000017221101441890B3B2"
+        android:textColor="#333"
+        android:textSize="11sp"
+        android:gravity="center"
+        android:singleLine="true"
+        android:ellipsize="middle" />
+
+    <TextView
+        android:id="@+id/tvTime"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="2"
+        android:text="2024-07-10 23:59:59"
+        android:textColor="#333"
+        android:textSize="11sp"
+        android:gravity="center" />
+
+</LinearLayout> 

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#f5f5f5">
+
+    <!-- Header -->
+    <TextView
+        android:id="@+id/headerText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="RFID Management System"
+        android:textColor="#172D53"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="60dp" />
+
+    <!-- Scan In Button -->
+    <Button
+        android:id="@+id/btnScanIn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="รับผ้าเข้า"
+        android:backgroundTint="#28a745"
+        android:textColor="@android:color/white"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:padding="20dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:layout_below="@id/headerText"
+        android:layout_marginTop="60dp"
+        android:elevation="5dp" />
+
+    <!-- Scan Out Button -->
+    <Button
+        android:id="@+id/btnScanOut"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="ผ้าออก"
+        android:backgroundTint="#dc3545"
+        android:textColor="@android:color/white"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:padding="20dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:layout_below="@id/btnScanIn"
+        android:layout_marginTop="30dp"
+        android:elevation="5dp" />
+
+    <!-- Footer -->
+    <TextView
+        android:id="@+id/footerText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Device ID: Loading..."
+        android:textColor="#666"
+        android:textSize="14sp"
+        android:gravity="center"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="20dp" />
+
+</RelativeLayout> 
