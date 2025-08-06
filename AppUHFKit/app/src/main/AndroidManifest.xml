@@ -40,6 +40,10 @@
         <activity
             android:name=".ScanOutActivity"
             android:exported="false" />
+            
+        <activity
+            android:name=".ScanDeliverActivity"
+            android:exported="false" />
         
     </application>
 

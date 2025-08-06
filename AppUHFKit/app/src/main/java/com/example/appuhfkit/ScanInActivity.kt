@@ -54,7 +54,7 @@ class ScanInActivity : AppCompatActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
 
-        uhfWrapper = UHFWrapper(this)
+        uhfWrapper = MyApplication.getUHFWrapper(this)
 
         btnScan.setOnClickListener {
             if (isScanning) {
@@ -239,6 +239,28 @@ class ScanInActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        uhfWrapper.release()
+        // หยุดการสแกนเมื่อออกจากหน้า
+        if (isScanning) {
+            stopScan()
+        }
+        Log.d(TAG, "ScanInActivity destroyed")
+    }
+    
+    override fun onPause() {
+        super.onPause()
+        // หยุดการสแกนเมื่อหน้าถูก pause
+        if (isScanning) {
+            stopScan()
+        }
+        Log.d(TAG, "ScanInActivity paused")
+    }
+    
+    override fun onStop() {
+        super.onStop()
+        // หยุดการสแกนเมื่อหน้าถูก stop
+        if (isScanning) {
+            stopScan()
+        }
+        Log.d(TAG, "ScanInActivity stopped")
     }
 } 

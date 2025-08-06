@@ -8,18 +8,18 @@ import android.widget.TextView
 import android.util.Log
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import java.text.SimpleDateFormat
-import java.util.*
 import android.app.AlertDialog
 import android.provider.Settings
 import org.json.JSONArray
 import org.json.JSONObject
+import java.text.SimpleDateFormat
+import java.util.*
 import android.os.Handler
 import android.os.Looper
 
-class ScanOutActivity : AppCompatActivity() {
+class ScanDeliverActivity : AppCompatActivity() {
     companion object {
-        private const val TAG = "ScanOutActivity"
+        private const val TAG = "ScanDeliverActivity"
     }
 
     private lateinit var uhfWrapper: UHFWrapper
@@ -36,12 +36,12 @@ class ScanOutActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_scan_out)
+        setContentView(R.layout.activity_scan_deliver)
 
         // Setup Toolbar
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
-        supportActionBar?.title = "AppUHFKit"
+        supportActionBar?.title = "จัดส่งผ้า"
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_arrow_back)
 
@@ -86,10 +86,10 @@ class ScanOutActivity : AppCompatActivity() {
         tagList.clear()
         adapter.notifyDataSetChanged()
         updateFooter()
-        Log.d(TAG, "Started scanning for Scan Out, cleared tag list")
+        Log.d(TAG, "Started scanning for Scan Deliver, cleared tag list")
 
         uhfWrapper.startScan { tagData ->
-            Log.d(TAG, "Tag scanned in Scan Out: $tagData")
+            Log.d(TAG, "Tag scanned in Scan Deliver: $tagData")
             // แปลงข้อมูล EPC, RSSI จาก string
             val epc = tagData.substringAfter("EPC: ").substringBefore(", RSSI:").trim()
             val rssi = tagData.substringAfter("RSSI: ", "").trim()
@@ -125,7 +125,7 @@ class ScanOutActivity : AppCompatActivity() {
     }
 
     private fun updateFooter() {
-        footerText.text = "Total Items: ${tagList.size}"
+        footerText.text = "จำนวนรายการ: ${tagList.size}"
     }
 
     private fun getAndroidDeviceId(): String {
@@ -170,13 +170,13 @@ class ScanOutActivity : AppCompatActivity() {
                 jsonArray.put(jsonObject)
             }
             
-            Log.d(TAG, "Sending data to outbound API: ${jsonArray.toString(2)}")
+            Log.d(TAG, "Sending data to deliverbound API: ${jsonArray.toString(2)}")
             
             // แสดง loading dialog
             val loadingDialog = showLoadingDialog()
             
-            // ส่งข้อมูลไปยัง outbound API
-            apiService.sendOutboundData(jsonArray) { success, message ->
+            // ส่งข้อมูลไปยัง deliverbound API
+            apiService.sendDeliverboundData(jsonArray) { success, message ->
                 mainHandler.post {
                     // ปิด loading dialog
                     loadingDialog.dismiss()
@@ -208,6 +208,7 @@ class ScanOutActivity : AppCompatActivity() {
         return dialog
     }
 
+    // ปรับ showAlert ให้รองรับ callback หลังปิด dialog
     private fun showAlert(title: String, message: String, onDismiss: (() -> Unit)? = null) {
         AlertDialog.Builder(this)
             .setTitle(title)
@@ -242,7 +243,7 @@ class ScanOutActivity : AppCompatActivity() {
         if (isScanning) {
             stopScan()
         }
-        Log.d(TAG, "ScanOutActivity destroyed")
+        Log.d(TAG, "ScanDeliverActivity destroyed")
     }
     
     override fun onPause() {
@@ -251,7 +252,7 @@ class ScanOutActivity : AppCompatActivity() {
         if (isScanning) {
             stopScan()
         }
-        Log.d(TAG, "ScanOutActivity paused")
+        Log.d(TAG, "ScanDeliverActivity paused")
     }
     
     override fun onStop() {
@@ -260,6 +261,6 @@ class ScanOutActivity : AppCompatActivity() {
         if (isScanning) {
             stopScan()
         }
-        Log.d(TAG, "ScanOutActivity stopped")
+        Log.d(TAG, "ScanDeliverActivity stopped")
     }
 } 
