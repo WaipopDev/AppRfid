@@ -78,6 +78,25 @@ class ScanInActivity : AppCompatActivity() {
         onBackPressed()
         return true
     }
+    
+    override fun onPause() {
+        super.onPause()
+        Log.d(TAG, "ScanInActivity paused - stopping scan")
+        // หยุดการสแกนเมื่อ Activity ถูก pause
+        if (isScanning) {
+            stopScan()
+        }
+    }
+    
+    override fun onStop() {
+        super.onStop()
+        Log.d(TAG, "ScanInActivity stopped")
+        // ให้แน่ใจว่าหยุดการสแกนเมื่อ Activity หยุดทำงาน
+        if (isScanning) {
+            isScanning = false
+            uhfWrapper.stopScan()
+        }
+    }
 
     private fun startScan() {
         isScanning = true
@@ -244,23 +263,5 @@ class ScanInActivity : AppCompatActivity() {
             stopScan()
         }
         Log.d(TAG, "ScanInActivity destroyed")
-    }
-    
-    override fun onPause() {
-        super.onPause()
-        // หยุดการสแกนเมื่อหน้าถูก pause
-        if (isScanning) {
-            stopScan()
-        }
-        Log.d(TAG, "ScanInActivity paused")
-    }
-    
-    override fun onStop() {
-        super.onStop()
-        // หยุดการสแกนเมื่อหน้าถูก stop
-        if (isScanning) {
-            stopScan()
-        }
-        Log.d(TAG, "ScanInActivity stopped")
     }
 } 

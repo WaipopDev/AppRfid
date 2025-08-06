@@ -78,6 +78,25 @@ class ScanDeliverActivity : AppCompatActivity() {
         onBackPressed()
         return true
     }
+    
+    override fun onPause() {
+        super.onPause()
+        Log.d(TAG, "ScanDeliverActivity paused - stopping scan")
+        // หยุดการสแกนเมื่อ Activity ถูก pause
+        if (isScanning) {
+            stopScan()
+        }
+    }
+    
+    override fun onStop() {
+        super.onStop()
+        Log.d(TAG, "ScanDeliverActivity stopped")
+        // ให้แน่ใจว่าหยุดการสแกนเมื่อ Activity หยุดทำงาน
+        if (isScanning) {
+            isScanning = false
+            uhfWrapper.stopScan()
+        }
+    }
 
     private fun startScan() {
         isScanning = true
@@ -244,23 +263,5 @@ class ScanDeliverActivity : AppCompatActivity() {
             stopScan()
         }
         Log.d(TAG, "ScanDeliverActivity destroyed")
-    }
-    
-    override fun onPause() {
-        super.onPause()
-        // หยุดการสแกนเมื่อหน้าถูก pause
-        if (isScanning) {
-            stopScan()
-        }
-        Log.d(TAG, "ScanDeliverActivity paused")
-    }
-    
-    override fun onStop() {
-        super.onStop()
-        // หยุดการสแกนเมื่อหน้าถูก stop
-        if (isScanning) {
-            stopScan()
-        }
-        Log.d(TAG, "ScanDeliverActivity stopped")
     }
 } 
