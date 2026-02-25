@@ -12,8 +12,8 @@ import android.util.Log
 
 class ApiService {
     companion object {
-        private const val BASE_URL = "http://35.198.228.196/api/interface/"
-        private const val BASE_URL_API = "http://35.198.228.196/api/"
+        private const val BASE_URL = "http://34.142.225.95/api/interface/"
+        private const val BASE_URL_API = "http://34.142.225.95/api/"
         private const val DELIVERBOUND_URL = "${BASE_URL}deliverbound"
         private const val TIMEOUT_SECONDS = 30L
     }

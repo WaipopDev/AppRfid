@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">AppUHFKit</string>
+    <string name="app_name">AppUHFKit Dev</string>
     <string name="label_select_laundry">กรุณาเลือกโรงซัก</string>
     <string name="title_select_laundry">เลือกโรงซัก</string>
     <string-array name="laundry_options">
