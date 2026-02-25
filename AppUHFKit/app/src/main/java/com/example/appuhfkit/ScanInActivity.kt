@@ -16,6 +16,8 @@ import java.text.SimpleDateFormat
 import java.util.*
 import android.os.Handler
 import android.os.Looper
+import android.content.Intent
+import androidx.activity.result.contract.ActivityResultContracts
 
 class ScanInActivity : AppCompatActivity() {
     companion object {
@@ -33,6 +35,9 @@ class ScanInActivity : AppCompatActivity() {
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
     private val apiService = ApiService()
     private val mainHandler = Handler(Looper.getMainLooper())
+    private var selectedFabricType: String? = null
+    private var selectedLaundry: String? = null
+    private var selectedLaundryLabel: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,13 +70,21 @@ class ScanInActivity : AppCompatActivity() {
         }
 
         btnSave.setOnClickListener {
-            saveScanData()
+            if (tagList.isEmpty()) {
+                showAlert("ไม่มีข้อมูล", "กรุณาสแกนข้อมูลก่อนบันทึก")
+                return@setOnClickListener
+            }
+            // Launch fabric type selection screen
+            launchFabricTypeSelection()
         }
 
         updateFooter()
         
         // ใช้ฟอนต์ SukhumvitSet
         applyFonts()
+        
+        // Setup activity result launcher
+        setupActivityResultLauncher()
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -147,6 +160,29 @@ class ScanInActivity : AppCompatActivity() {
         footerText.text = "Total Items: ${tagList.size}"
     }
 
+    private val fabricTypeSelectionLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            selectedFabricType = result.data?.getStringExtra(FabricTypeSelectionActivity.EXTRA_SELECTED_FABRIC_TYPE)
+            selectedLaundry = result.data?.getStringExtra(FabricTypeSelectionActivity.EXTRA_SELECTED_LAUNDRY)
+            selectedLaundryLabel = result.data?.getStringExtra(FabricTypeSelectionActivity.EXTRA_SELECTED_LAUNDRY_LABEL)
+            if (selectedFabricType != null) {
+                // Proceed with saving data
+                saveScanData()
+            }
+        }
+    }
+
+    private fun setupActivityResultLauncher() {
+        // Launcher is already initialized above
+    }
+
+    private fun launchFabricTypeSelection() {
+        val intent = Intent(this, FabricTypeSelectionActivity::class.java)
+        fabricTypeSelectionLauncher.launch(intent)
+    }
+
     private fun getAndroidDeviceId(): String {
         return Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID) ?: "unknown_device"
     }
@@ -157,15 +193,21 @@ class ScanInActivity : AppCompatActivity() {
             return
         }
 
+        if (selectedFabricType == null) {
+            showAlert("ไม่พบประเภทผ้า", "กรุณาเลือกประเภทผ้า")
+            return
+        }
+
         // 1. หยุด scan ถ้ากำลังสแกน
         if (isScanning) {
             stopScan()
         }
 
         // 2. แสดง Alert ยืนยันการบันทึก
+        val laundryText = selectedLaundryLabel?.let { "โรงซัก: $it\n" } ?: ""
         AlertDialog.Builder(this)
             .setTitle("ยืนยันการบันทึก")
-            .setMessage("คุณต้องการบันทึกข้อมูล ${tagList.size} รายการหรือไม่?")
+            .setMessage("คุณต้องการบันทึกข้อมูล ${tagList.size} รายการหรือไม่?\n${laundryText}ประเภทผ้า: ${getFabricTypeDisplayName(selectedFabricType!!)}")
             .setPositiveButton("บันทึก") { dialog, _ ->
                 dialog.dismiss()
                 performSave()
@@ -174,6 +216,15 @@ class ScanInActivity : AppCompatActivity() {
                 dialog.dismiss()
             }
             .show()
+    }
+
+    private fun getFabricTypeDisplayName(fabricType: String): String {
+        return when (fabricType) {
+            "stainedCloth" -> "ผ้าเปื้อน"
+            "attachedCloth" -> "ผ้าติดเชื้อ"
+            "reWashCloth" -> "ผ้าซักใหม่ (Re-wash)"
+            else -> "ไม่ทราบ"
+        }
     }
 
     private fun performSave() {
@@ -185,17 +236,20 @@ class ScanInActivity : AppCompatActivity() {
                     put("readDateTime", tag.time)
                     put("readerId", getAndroidDeviceId())
                     put("typeSend", "appMobile")
+                    put("statusGroupType", selectedFabricType)
                 }
                 jsonArray.put(jsonObject)
             }
             
+            val inboundPath = selectedLaundry ?: "inbound-1"
+            Log.d(TAG, "Sending data to inbound API (path: $inboundPath) with statusGroupType: $selectedFabricType")
             Log.d(TAG, "Sending data to inbound API: ${jsonArray.toString(2)}")
             
             // แสดง loading dialog
             val loadingDialog = showLoadingDialog()
             
-            // ส่งข้อมูลไปยัง inbound API
-            apiService.sendInboundData(jsonArray) { success, message ->
+            // ส่งข้อมูลไปยัง inbound API ตามโรงซักที่เลือก (inbound-1, inbound-2)
+            apiService.sendInboundData(jsonArray, inboundPath) { success, message ->
                 mainHandler.post {
                     // ปิด loading dialog
                     loadingDialog.dismiss()
@@ -206,6 +260,9 @@ class ScanInActivity : AppCompatActivity() {
                             tagList.clear()
                             adapter.notifyDataSetChanged()
                             updateFooter()
+                            selectedFabricType = null
+                            selectedLaundry = null
+                            selectedLaundryLabel = null
                         }
                     } else {
                         showAlert("เกิดข้อผิดพลาด", message)

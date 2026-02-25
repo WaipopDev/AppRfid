@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#f5f5f5"
+    android:padding="0dp">
+
+    <!-- Toolbar -->
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="#172D53"
+        android:elevation="4dp"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        android:layout_marginBottom="10dp"/>
+
+    <!-- Content Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"
+        android:layout_marginBottom="20dp">
+
+        <TextView
+            android:id="@+id/headerText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="เลือกประเภทผ้า"
+            android:textColor="#172D53"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Fabric Type Selection -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@android:color/white"
+        android:padding="20dp"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
+        android:elevation="5dp">
+
+        <!-- Laundry Selection Dropdown -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/label_select_laundry"
+            android:textColor="#172D53"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <Spinner
+            android:id="@+id/spinnerLaundry"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@android:drawable/btn_dropdown"
+            android:paddingLeft="12dp"
+            android:paddingRight="12dp"
+            android:spinnerMode="dropdown"
+            android:layout_marginBottom="20dp" />
+
+        <!-- ส่วนเลือกประเภทผ้า (ซ่อนเมื่อใช้โหมดเลือกแค่โรงซัก) -->
+        <LinearLayout
+            android:id="@+id/fabricTypeSection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="กรุณาเลือกประเภทผ้าที่สแกน:"
+                android:textColor="#172D53"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="20dp" />
+
+            <RadioGroup
+                android:id="@+id/radioGroup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <RadioButton
+                    android:id="@+id/radioStainedCloth"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="ผ้าเปื้อน"
+                    android:textColor="#333"
+                    android:textSize="16sp"
+                    android:padding="15dp"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:layout_marginBottom="10dp" />
+
+                <RadioButton
+                    android:id="@+id/radioAttachedCloth"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="ผ้าติดเชื้อ"
+                    android:textColor="#333"
+                    android:textSize="16sp"
+                    android:padding="15dp"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:layout_marginBottom="10dp" />
+
+                <RadioButton
+                    android:id="@+id/radioReWashCloth"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="ผ้าซักใหม่ (Re-wash)"
+                    android:textColor="#333"
+                    android:textSize="16sp"
+                    android:padding="15dp"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:layout_marginBottom="10dp" />
+
+            </RadioGroup>
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Footer Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"
+        android:layout_marginTop="30dp">
+
+        <Button
+            android:id="@+id/btnBack"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:text="ย้อนกลับ"
+            android:backgroundTint="#6c757d"
+            android:textColor="@android:color/white"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"/>
+
+        <Button
+            android:id="@+id/btnConfirm"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:text="ยืนยัน"
+            android:backgroundTint="#172D53"
+            android:textColor="@android:color/white"
+            android:paddingLeft="25dp"
+            android:paddingRight="25dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"/>
+
+    </LinearLayout>
+
+</LinearLayout>

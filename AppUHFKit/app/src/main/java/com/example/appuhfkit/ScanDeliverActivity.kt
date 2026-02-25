@@ -16,6 +16,8 @@ import java.text.SimpleDateFormat
 import java.util.*
 import android.os.Handler
 import android.os.Looper
+import android.content.Intent
+import androidx.activity.result.contract.ActivityResultContracts
 
 class ScanDeliverActivity : AppCompatActivity() {
     companion object {
@@ -33,6 +35,10 @@ class ScanDeliverActivity : AppCompatActivity() {
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
     private val apiService = ApiService()
     private val mainHandler = Handler(Looper.getMainLooper())
+    private var selectedFabricWarehouseCode: String? = null
+    private var selectedDropOffPointCode: String? = null
+    private var selectedStatusSendType: String? = null
+    private var selectedRemarkDeliver: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,13 +71,21 @@ class ScanDeliverActivity : AppCompatActivity() {
         }
 
         btnSave.setOnClickListener {
-            saveScanData()
+            if (tagList.isEmpty()) {
+                showAlert("ไม่มีข้อมูล", "กรุณาสแกนข้อมูลก่อนบันทึก")
+                return@setOnClickListener
+            }
+            // Launch deliver selection screen
+            launchDeliverSelection()
         }
 
         updateFooter()
         
         // ใช้ฟอนต์ SukhumvitSet
         applyFonts()
+        
+        // Setup activity result launcher
+        setupActivityResultLauncher()
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -147,6 +161,43 @@ class ScanDeliverActivity : AppCompatActivity() {
         footerText.text = "จำนวนรายการ: ${tagList.size}"
     }
 
+    private val deliverSelectionLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            selectedFabricWarehouseCode = result.data?.getStringExtra(DeliverSelectionActivity.EXTRA_FABRIC_WAREHOUSE_CODE)
+            selectedDropOffPointCode = result.data?.getStringExtra(DeliverSelectionActivity.EXTRA_DROP_OFF_POINT_CODE)
+            selectedStatusSendType = result.data?.getStringExtra(DeliverSelectionActivity.EXTRA_STATUS_SEND_TYPE)
+            selectedRemarkDeliver = result.data?.getStringExtra(DeliverSelectionActivity.EXTRA_REMARK_DELIVER)
+            
+            // Log received values
+            Log.d(TAG, "Received values from DeliverSelectionActivity:")
+            Log.d(TAG, "  - fabricWarehouseCode: $selectedFabricWarehouseCode")
+            Log.d(TAG, "  - dropOffPointCode: $selectedDropOffPointCode")
+            Log.d(TAG, "  - statusSendType: $selectedStatusSendType")
+            Log.d(TAG, "  - remarkDeliver: $selectedRemarkDeliver")
+            
+            if (selectedFabricWarehouseCode != null && selectedDropOffPointCode != null && selectedStatusSendType != null) {
+                Log.d(TAG, "All required fields are present, proceeding with saveScanData()")
+                // Proceed with saving data
+                saveScanData()
+            } else {
+                Log.e(TAG, "Missing required fields, cannot proceed with save")
+            }
+        } else {
+            Log.d(TAG, "DeliverSelectionActivity returned with result code: ${result.resultCode}")
+        }
+    }
+
+    private fun setupActivityResultLauncher() {
+        // Launcher is already initialized above
+    }
+
+    private fun launchDeliverSelection() {
+        val intent = Intent(this, DeliverSelectionActivity::class.java)
+        deliverSelectionLauncher.launch(intent)
+    }
+
     private fun getAndroidDeviceId(): String {
         return Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID) ?: "unknown_device"
     }
@@ -157,15 +208,31 @@ class ScanDeliverActivity : AppCompatActivity() {
             return
         }
 
+        if (selectedFabricWarehouseCode == null || selectedDropOffPointCode == null || selectedStatusSendType == null) {
+            showAlert("ข้อมูลไม่ครบถ้วน", "กรุณาเลือกข้อมูลการจัดส่งให้ครบถ้วน")
+            return
+        }
+
         // 1. หยุด scan ถ้ากำลังสแกน
         if (isScanning) {
             stopScan()
         }
 
         // 2. แสดง Alert ยืนยันการบันทึก
+        val message = buildString {
+            append("คุณต้องการบันทึกข้อมูล ${tagList.size} รายการหรือไม่?\n\n")
+            append("ข้อมูลการจัดส่ง:\n")
+            append("• จุดส่งผ้า: ${getWarehouseDisplayName(selectedFabricWarehouseCode!!)}\n")
+            append("• จุดรับผ้า: ${getDepartmentDisplayName(selectedDropOffPointCode!!)}\n")
+            append("• รอบการส่ง: ${getSendTypeDisplayName(selectedStatusSendType!!)}")
+            if (!selectedRemarkDeliver.isNullOrEmpty()) {
+                append("\n• หมายเหตุ: $selectedRemarkDeliver")
+            }
+        }
+
         AlertDialog.Builder(this)
             .setTitle("ยืนยันการบันทึก")
-            .setMessage("คุณต้องการบันทึกข้อมูล ${tagList.size} รายการหรือไม่?")
+            .setMessage(message)
             .setPositiveButton("บันทึก") { dialog, _ ->
                 dialog.dismiss()
                 performSave()
@@ -176,8 +243,35 @@ class ScanDeliverActivity : AppCompatActivity() {
             .show()
     }
 
+    private fun getWarehouseDisplayName(code: String): String {
+        // This would ideally be cached from the API response
+        return "คลัง $code"
+    }
+
+    private fun getDepartmentDisplayName(code: String): String {
+        // This would ideally be cached from the API response
+        return "หน่วยงาน $code"
+    }
+
+    private fun getSendTypeDisplayName(type: String): String {
+        return when (type) {
+            "sendStandard" -> "ปกติ"
+            "sendSupplement" -> "เสริม"
+            "sendUrgent" -> "ด่วน"
+            "sendBeforeWashing" -> "รอบ2"
+            else -> "ไม่ทราบ"
+        }
+    }
+
     private fun performSave() {
         try {
+            // Log required fields before sending
+            Log.d(TAG, "Required fields check:")
+            Log.d(TAG, "  - fabricWarehouseCode: $selectedFabricWarehouseCode")
+            Log.d(TAG, "  - dropOffPointCode: $selectedDropOffPointCode")
+            Log.d(TAG, "  - statusSendType: $selectedStatusSendType")
+            Log.d(TAG, "  - remarkDeliver: $selectedRemarkDeliver")
+            
             val jsonArray = JSONArray()
             for (tag in tagList) {
                 val jsonObject = JSONObject().apply {
@@ -185,10 +279,17 @@ class ScanDeliverActivity : AppCompatActivity() {
                     put("readDateTime", tag.time)
                     put("readerId", getAndroidDeviceId())
                     put("typeSend", "appMobile")
+                    put("fabricWarehouseCode", selectedFabricWarehouseCode)
+                    put("dropOffPointCode", selectedDropOffPointCode)
+                    put("statusSendType", selectedStatusSendType)
+                    if (!selectedRemarkDeliver.isNullOrEmpty()) {
+                        put("remarkDeliver", selectedRemarkDeliver)
+                    }
                 }
                 jsonArray.put(jsonObject)
             }
             
+            Log.d(TAG, "Sending data to deliverbound API with delivery info")
             Log.d(TAG, "Sending data to deliverbound API: ${jsonArray.toString(2)}")
             
             // แสดง loading dialog
@@ -206,6 +307,11 @@ class ScanDeliverActivity : AppCompatActivity() {
                             tagList.clear()
                             adapter.notifyDataSetChanged()
                             updateFooter()
+                            // Reset delivery selection data
+                            selectedFabricWarehouseCode = null
+                            selectedDropOffPointCode = null
+                            selectedStatusSendType = null
+                            selectedRemarkDeliver = null
                         }
                     } else {
                         showAlert("เกิดข้อผิดพลาด", message)

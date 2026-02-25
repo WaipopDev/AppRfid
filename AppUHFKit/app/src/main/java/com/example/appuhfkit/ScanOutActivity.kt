@@ -16,6 +16,8 @@ import org.json.JSONArray
 import org.json.JSONObject
 import android.os.Handler
 import android.os.Looper
+import android.content.Intent
+import androidx.activity.result.contract.ActivityResultContracts
 
 class ScanOutActivity : AppCompatActivity() {
     companion object {
@@ -33,6 +35,20 @@ class ScanOutActivity : AppCompatActivity() {
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
     private val apiService = ApiService()
     private val mainHandler = Handler(Looper.getMainLooper())
+    private var selectedLaundry: String? = null
+    private var selectedLaundryLabel: String? = null
+
+    private val laundrySelectionLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            selectedLaundry = result.data?.getStringExtra(FabricTypeSelectionActivity.EXTRA_SELECTED_LAUNDRY)
+            selectedLaundryLabel = result.data?.getStringExtra(FabricTypeSelectionActivity.EXTRA_SELECTED_LAUNDRY_LABEL)
+            if (selectedLaundry != null) {
+                saveScanData()
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,7 +81,11 @@ class ScanOutActivity : AppCompatActivity() {
         }
 
         btnSave.setOnClickListener {
-            saveScanData()
+            if (tagList.isEmpty()) {
+                showAlert("ไม่มีข้อมูล", "กรุณาสแกนข้อมูลก่อนบันทึก")
+                return@setOnClickListener
+            }
+            launchLaundrySelection()
         }
 
         updateFooter()
@@ -151,21 +171,26 @@ class ScanOutActivity : AppCompatActivity() {
         return Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID) ?: "unknown_device"
     }
 
+    private fun launchLaundrySelection() {
+        val intent = Intent(this, FabricTypeSelectionActivity::class.java)
+        intent.putExtra(FabricTypeSelectionActivity.EXTRA_LAUNDRY_ONLY, true)
+        laundrySelectionLauncher.launch(intent)
+    }
+
     private fun saveScanData() {
         if (tagList.isEmpty()) {
             showAlert("ไม่มีข้อมูล", "กรุณาสแกนข้อมูลก่อนบันทึก")
             return
         }
 
-        // 1. หยุด scan ถ้ากำลังสแกน
         if (isScanning) {
             stopScan()
         }
 
-        // 2. แสดง Alert ยืนยันการบันทึก
+        val laundryText = selectedLaundryLabel?.let { "โรงซัก: $it\n" } ?: ""
         AlertDialog.Builder(this)
             .setTitle("ยืนยันการบันทึก")
-            .setMessage("คุณต้องการบันทึกข้อมูล ${tagList.size} รายการหรือไม่?")
+            .setMessage("คุณต้องการบันทึกข้อมูล ${tagList.size} รายการหรือไม่?\n$laundryText")
             .setPositiveButton("บันทึก") { dialog, _ ->
                 dialog.dismiss()
                 performSave()
@@ -189,23 +214,22 @@ class ScanOutActivity : AppCompatActivity() {
                 jsonArray.put(jsonObject)
             }
             
-            Log.d(TAG, "Sending data to outbound API: ${jsonArray.toString(2)}")
-            
-            // แสดง loading dialog
+            val outboundPath = selectedLaundry?.replace("inbound", "outbound") ?: "outbound-1"
+            Log.d(TAG, "Sending data to outbound API (path: $outboundPath): ${jsonArray.toString(2)}")
+
             val loadingDialog = showLoadingDialog()
-            
-            // ส่งข้อมูลไปยัง outbound API
-            apiService.sendOutboundData(jsonArray) { success, message ->
+
+            apiService.sendOutboundData(jsonArray, outboundPath) { success, message ->
                 mainHandler.post {
-                    // ปิด loading dialog
                     loadingDialog.dismiss()
-                    
+
                     if (success) {
                         showAlert("ส่งข้อมูลสำเร็จ", message) {
-                            // ล้าง tagList และอัปเดต UI
                             tagList.clear()
                             adapter.notifyDataSetChanged()
                             updateFooter()
+                            selectedLaundry = null
+                            selectedLaundryLabel = null
                         }
                     } else {
                         showAlert("เกิดข้อผิดพลาด", message)

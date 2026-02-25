@@ -44,6 +44,14 @@
         <activity
             android:name=".ScanDeliverActivity"
             android:exported="false" />
+            
+        <activity
+            android:name=".FabricTypeSelectionActivity"
+            android:exported="false" />
+            
+        <activity
+            android:name=".DeliverSelectionActivity"
+            android:exported="false" />
         
     </application>
 
